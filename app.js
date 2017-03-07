@@ -1,19 +1,24 @@
-//Lets require/import the HTTP module
-var http = require('http');
+var app = require("express");
+var server = require("http").Server(app);
+var io = require("socket.io")(server);
 
-//Lets define a port we want to listen to
-const PORT=80; 
+io.on("connection", function (socket) {
+    var tweet = {user: "nodesource", text: "Hello, world!"};
 
-//We need a function which handles requests and send response
-function handleRequest(request, response){
-    response.end('virtual_host_2');
-}
+    // to make things interesting, have it send every second
+    var interval = setInterval(function () {
+        socket.emit("tweet", tweet);
+    }, 1000);
 
-//Create a server
-var server = http.createServer(handleRequest);
+    socket.on("disconnect", function () {
+        clearInterval(interval);
+    });
+    
+    socket.on("tweet", function (tweet) {
+        // we received a tweet from the browser
 
-//Lets start our server
-server.listen(PORT, function(){
-    //Callback triggered when server is successfully listening. Hurray!
-    console.log("Server listening on: http://localhost:%s", PORT);
+        console.log(tweet);
+    });
 });
+
+app.listen(8080);
